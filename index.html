@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Untuk Kalian, Sampai Jumpa — KKN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --night:#171a35;
+    --night-deep:#0d0f24;
+    --paper:#f6ecd9;
+    --paper-dark:#ead9b8;
+    --amber:#e2924f;
+    --amber-glow:#f4b878;
+    --sage:#7c9b6f;
+    --gold:#d9a95a;
+    --ink:#3a2f22;
+    --ink-soft:#6b5c47;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;
+    width:100%;height:100%;
+    overflow:hidden;
+    font-family:'Poppins',sans-serif;
+    background:var(--night-deep);
+  }
+  #stage{
+    position:fixed;
+    inset:0;
+    width:100vw;height:100vh;
+    overflow:hidden;
+  }
+
+  /* ================= SHARED SKY BACKGROUND ================= */
+  .sky{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(ellipse at 50% 0%, #2a2f5c 0%, var(--night) 45%, var(--night-deep) 100%);
+    overflow:hidden;
+  }
+  /* satu layer CSS untuk seluruh bintang, bukan puluhan elemen DOM+JS */
+  .sky::after{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      radial-gradient(1.4px 1.4px at 8% 18%,#fff,transparent 60%),
+      radial-gradient(1px 1px at 22% 42%,#fff,transparent 60%),
+      radial-gradient(1.4px 1.4px at 38% 12%,#fff,transparent 60%),
+      radial-gradient(1px 1px at 52% 55%,#fff,transparent 60%),
+      radial-gradient(1.4px 1.4px at 67% 28%,#fff,transparent 60%),
+      radial-gradient(1px 1px at 80% 60%,#fff,transparent 60%),
+      radial-gradient(1.4px 1.4px at 92% 20%,#fff,transparent 60%),
+      radial-gradient(1px 1px at 14% 65%,#fff,transparent 60%),
+      radial-gradient(1.4px 1.4px at 46% 70%,#fff,transparent 60%),
+      radial-gradient(1px 1px at 72% 8%,#fff,transparent 60%);
+    background-repeat:no-repeat;
+    opacity:.75;
+    animation:starsPulse 6s ease-in-out infinite;
+  }
+  @keyframes starsPulse{
+    0%,100%{opacity:.5;}
+    50%{opacity:.85;}
+  }
+  .hills{
+    position:absolute;bottom:0;left:0;width:100%;
+    height:28vh;
+    background:
+      radial-gradient(120% 100% at 20% 100%, #1c2140 0%, transparent 60%),
+      linear-gradient(180deg, #1a1e3a 0%, #10122a 100%);
+    clip-path:polygon(0% 100%, 0% 40%, 8% 32%, 18% 45%, 30% 20%, 42% 38%, 55% 15%, 68% 40%, 80% 25%, 92% 42%, 100% 30%, 100% 100%);
+  }
+  .moon{
+    position:absolute; top:8%; right:10%;
+    width:70px;height:70px;border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #fff8e8, var(--amber-glow) 70%);
+    box-shadow:0 0 40px 10px rgba(244,184,120,.35);
+  }
+
+  /* ================= PAGE WRAPPER / TRANSITION ================= */
+  .page{
+    position:absolute;inset:0;
+    display:flex;align-items:center;justify-content:center;
+    transition:opacity .9s ease, transform .9s cubic-bezier(.65,0,.35,1);
+  }
+  #page1.leaving{
+    opacity:0;
+    transform:scale(.9) translateY(-40px);
+    pointer-events:none;
+  }
+  #page2{
+    opacity:0;
+    transform:translateY(40px);
+    pointer-events:none;
+    /* jangan render/hitung layout halaman 2 sebelum benar-benar dibutuhkan */
+    content-visibility:hidden;
+  }
+  #page2.entering{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+    content-visibility:visible;
+  }
+
+  /* ================= PAGE 1 : LETTER ================= */
+  .letter-wrap{
+    position:relative;
+    width:min(640px, 88vw);
+    max-height:88vh;
+    display:flex;flex-direction:column;
+    z-index:5;
+    transition:transform 1s cubic-bezier(.7,0,.3,1), opacity .8s ease;
+  }
+  .letter-wrap.fold{
+    transform: translateY(-30vh) scale(.15) rotate(-8deg);
+    opacity:0;
+  }
+  .eyebrow{
+    text-align:center;
+    color:var(--amber-glow);
+    letter-spacing:.35em;
+    font-size:.68rem;
+    text-transform:uppercase;
+    margin-bottom:10px;
+    font-weight:500;
+    opacity:.85;
+  }
+  .envelope-title{
+    text-align:center;
+    font-family:'Playfair Display',serif;
+    font-style:italic;
+    font-weight:600;
+    color:var(--paper);
+    font-size:clamp(1.5rem,4vw,2.1rem);
+    margin:0 0 18px;
+  }
+  .paper{
+    background:
+      linear-gradient(180deg, var(--paper) 0%, var(--paper-dark) 100%);
+    border-radius:6px 6px 60px 6px;
+    box-shadow:
+      0 30px 60px -20px rgba(0,0,0,.6),
+      0 0 0 1px rgba(255,255,255,.06);
+    padding:34px 34px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  .paper::before{
+    content:"";
+    position:absolute; top:0; left:0; right:0; height:6px;
+    background:linear-gradient(90deg, var(--sage), var(--gold), var(--amber));
+  }
+  .to-line{
+    font-family:'Caveat',cursive;
+    font-size:1.5rem;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  #letterBody{
+    font-family:'Caveat',cursive;
+    font-size:1.45rem;
+    line-height:1.6;
+    color:var(--ink);
+    max-height:44vh;
+    overflow-y:auto;
+    padding-right:6px;
+    white-space:pre-wrap;
+  }
+  #letterBody::-webkit-scrollbar{width:6px;}
+  #letterBody::-webkit-scrollbar-thumb{background:var(--gold);border-radius:4px;}
+  .signature{
+    margin-top:16px;
+    text-align:right;
+    font-family:'Caveat',cursive;
+    font-size:1.6rem;
+    color:var(--ink-soft);
+  }
+
+  .next-btn{
+    margin:22px auto 0;
+    display:flex;align-items:center;gap:10px;
+    background:linear-gradient(135deg, var(--amber), var(--gold));
+    color:#2b1c0d;
+    border:none;
+    padding:13px 30px;
+    border-radius:999px;
+    font-family:'Poppins',sans-serif;
+    font-weight:600;
+    font-size:.95rem;
+    letter-spacing:.02em;
+    cursor:pointer;
+    box-shadow:0 12px 24px -8px rgba(226,146,79,.55);
+    transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .next-btn:hover{ transform:translateY(-2px); box-shadow:0 16px 30px -8px rgba(226,146,79,.7);}
+  .next-btn:active{ transform:translateY(0px) scale(.97); }
+  .next-btn svg{ width:18px;height:18px; transition:transform .3s ease;}
+  .next-btn:hover svg{ transform:translateX(4px); }
+
+  /* ================= SOUND TOGGLE ================= */
+  .sound-ctrl{
+    position:absolute; top:20px; right:20px;
+    z-index:20;
+    display:flex; align-items:center; gap:8px;
+    background:rgba(15,17,36,.78);
+    border:1px solid rgba(255,255,255,.12);
+    padding:8px 14px;
+    border-radius:999px;
+    color:var(--paper);
+    font-size:.72rem;
+  }
+  .sound-btn{
+    width:30px;height:30px;
+    border-radius:50%;
+    border:none;
+    background:var(--amber-glow);
+    color:#241708;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .sound-label{
+    opacity:.85;
+    white-space:nowrap;
+  }
+
+  /* ================= FALLING PETALS / STARS (CSS-only, no JS per frame) ================= */
+  .falling{
+    position:absolute;
+    top:-8vh;
+    left:var(--x, 50%);
+    font-size:var(--size, 20px);
+    opacity:0;
+    pointer-events:none;
+    will-change:transform, opacity;
+    z-index:8;
+    animation:petalFall var(--dur, 11s) linear infinite;
+    animation-delay:var(--delay, 0s);
+  }
+  @keyframes petalFall{
+    0%{ transform:translate(0,0) rotate(0deg); opacity:0; }
+    8%{ opacity:var(--op, .85); }
+    92%{ opacity:var(--op, .85); }
+    100%{ transform:translate(var(--sway, 40px), 118vh) rotate(var(--spin, 260deg)); opacity:0; }
+  }
+
+  /* ================= FIREWORKS CANVAS ================= */
+  #fireworks{
+    position:absolute; inset:0;
+    z-index:15;
+    pointer-events:none;
+  }
+
+  /* ================= PAGE 2 : GALLERY ================= */
+  .gallery-page{
+    width:100%;height:100%;
+    display:flex;flex-direction:column;
+    align-items:center;
+    padding:5vh 4vw 3vh;
+    overflow-y:auto;
+    z-index:5;
+    position:relative;
+  }
+  .gallery-header{
+    text-align:center;
+    margin-bottom:22px;
+  }
+  .gallery-eyebrow{
+    color:var(--sage);
+    letter-spacing:.35em;
+    font-size:.68rem;
+    text-transform:uppercase;
+    font-weight:500;
+  }
+  .gallery-title{
+    font-family:'Playfair Display',serif;
+    font-style:italic;
+    font-weight:700;
+    color:var(--paper);
+    font-size:clamp(1.7rem,4.5vw,2.6rem);
+    margin:6px 0 6px;
+  }
+  .gallery-sub{
+    color:rgba(246,236,217,.6);
+    font-size:.85rem;
+    max-width:520px;
+    margin:0 auto;
+  }
+  .gallery-grid{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:22px;
+    width:100%;
+  }
+  .polaroid{
+    background:var(--paper);
+    width:min(240px, 40vw);
+    padding:10px 10px 16px;
+    border-radius:3px;
+    box-shadow:0 14px 26px -10px rgba(0,0,0,.55);
+    transform:rotate(var(--tilt,0deg));
+    transition:transform .3s ease, box-shadow .3s ease;
+    position:relative;
+  }
+  .polaroid:nth-child(3n+1){ --tilt:-3deg; }
+  .polaroid:nth-child(3n+2){ --tilt:2deg; }
+  .polaroid:nth-child(3n){ --tilt:-1.5deg; }
+  .polaroid:hover{ transform:rotate(0deg) scale(1.04); box-shadow:0 20px 34px -8px rgba(0,0,0,.65); z-index:2;}
+  .polaroid .photo-box{
+    width:100%; aspect-ratio:1/1;
+    background:linear-gradient(135deg,#e4d3ac,#d8c39a);
+    border-radius:2px;
+    overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+  }
+  .polaroid img{
+    width:100%; height:100%; object-fit:cover; display:block;
+  }
+
+  .closing-note{
+    font-family:'Caveat',cursive;
+    font-size:1.3rem;
+    color:var(--amber-glow);
+    text-align:center;
+    margin-top:8px;
+    max-width:560px;
+  }
+
+  /* ================= GALLERY PAGER (next/prev per halaman) ================= */
+  .gallery-pager{
+    display:flex; align-items:center; justify-content:center;
+    gap:18px;
+    width:100%;
+    margin-bottom:18px;
+    flex:1;
+  }
+  .gal-nav{
+    flex-shrink:0;
+    width:42px;height:42px;
+    border-radius:50%;
+    border:1px solid rgba(244,184,120,.4);
+    background:rgba(20,22,45,.55);
+    color:var(--amber-glow);
+    font-size:1.3rem;
+    line-height:1;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    transition:transform .2s ease, border-color .2s ease, opacity .2s ease;
+  }
+  .gal-nav:hover:not(:disabled){ transform:scale(1.08); border-color:var(--amber-glow); }
+  .gal-nav:disabled{ opacity:.3; cursor:default; }
+  .gallery-viewport{
+    overflow:hidden;
+    width:min(760px, 78vw);
+  }
+  .gallery-track{
+    display:flex;
+    transition:transform .5s cubic-bezier(.65,0,.35,1);
+  }
+  .gallery-page-block{
+    flex:0 0 100%;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+    min-height:min(50vh, 320px);
+  }
+  .gallery-count{
+    font-family:'Poppins',sans-serif;
+    font-size:.75rem;
+    letter-spacing:.08em;
+    color:rgba(246,236,217,.55);
+    margin-top:14px;
+  }
+
+  @media (max-width:520px){
+    .paper{padding:24px 20px 20px;}
+    #letterBody{font-size:1.25rem; max-height:38vh;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .sky::after{ animation:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div id="stage">
+
+  <!-- shared sky, present on both pages -->
+  <div class="sky" id="sky">
+    <div class="moon"></div>
+    <div class="hills"></div>
+  </div>
+
+  <canvas id="fireworks"></canvas>
+
+  <div class="sound-ctrl">
+    <button class="sound-btn" id="soundBtn" title="Putar / jeda musik">
+      <svg id="iconPlay" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="iconPause" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+    </button>
+    <span class="sound-label">The Night We Met — Lord Huron 🎵</span>
+  </div>
+
+  <!-- Backsound: preload="auto" supaya file lagu sudah siap diputar
+       begitu halaman dibuka (lihat script di bawah untuk logika autoplay-nya) -->
+  <audio id="bgm" src="lagu.mp3" loop preload="auto"></audio>
+
+  <!-- ===================== PAGE 1 ===================== -->
+  <div class="page" id="page1">
+    <div class="letter-wrap" id="letterWrap">
+      <div class="eyebrow">Sepucuk surat kecil</div>
+      <div class="envelope-title">Untuk Keluarga KKN Tercinta</div>
+      <div class="paper">
+        <div class="to-line">Untuk teman-teman KKN Desa Buara yang kusayangi,</div>
+        <div id="letterBody">Haloo teman-teman!, Aku bikin gini karna emang aku mager sih bikin surat satu satu hehe jadi maklumin aja yaa kormades kalian ini.
+
+Pertama aku ucapin terima kasih banyak buat kalian semua yang udah jadi teman seperjuangan selama KKN ini. Kita udah bareng-bareng ngelewatin banyak hal, dari yang lucu sampe yang bikin stress, tapi semuanya jadi pengalaman yang nggak bakal terlupakan.
+
+Mungkin setelah kita kembali ketempat masing-masing kita udah gabisa dengerin kerandoman yang terjadi diposko kala itu. Mungkin aku tidak pintar untuk merangkai kata2 tapi aku menulis ini semua jujur dari hati.
+
+Fadlan Aku dan Kiki dengan kebiasaan ke pom untuk "setoran".
+Yaya dengan huru haranya waktu lupa naruh kunci atau hpnya.
+Vivi dengan ocehan-ocehannya yang seperti emak emak.
+FIa dan Shafa dengan debatnya yang seperti Tom and Jerry.
+Mey dengan teriaknnya nyuruh aku ngisi logbook atau nyuruh kita buat presensi.
+Asep dengan asbunnya yang bikin kita semua melongo lalu tertawa.
+Gege dan Darin dengan segala candaanya yang bisa bikin bingung tetapi ikut tertawa juga.
+Novi dengan rajinnya bangun pagi buat bangunin kalian yang dikamar.
+
+Tidak terasa masa masa itu sudah berakhir, dan kita harus kembali ke kehidupan masing-masing untuk melanjutkan perjalanan kita.
+
+Kalau boleh jujur hari ini pada tanngal 12 Agustus 2026 ini saat terbangun aku langsung mengingat kalian semua, kala itu aku terbangun karena mungkin ada bu minah yang sedang memasak didapur atau aku terbangun karena kiki yang menginvasi bagian kasurku.
+
+Waktu itu di jam jam pagi seperti waktu aku menulis surat ini mungkin kita sedang persiapan untuk berangkat ke sekolah untuk melakukan program kerja atau hanya sekedar membuat barang yang akan digunakan untuk proker seperti tempat sampah.
+
+Sekarang mungkin kita tidak bisa lagi merasakan suasana itu, tapi aku yakin kenangan itu akan selalu ada di hati kita semua.
+
+Aku sebagai kormades kalian ingin mengucapkan terima kasih yang sebesar besarnya untuk kalian semua karena udah menjadi teman yang mau mendukung dan memberi bantuan kepadaku yang tidak punya sama sekali kemampuan untuk memimpin ini, dengan dukungan kalian semua aku jadi bisa belajar dan mendapat pengalaman untuk menjadi kormades.
+
+Aku yakin selama aku menjadi kormades kalian semua pasti banyak kesalahan yang telah aku lakukan. Aku minta maaf sebesar besarnya atas semua kesalahan yang telah aku lakukan selama menjadi kormades kalian selama ini. Tanpa kalian aku tidak akan bisa memimpin kelompok ini dengan baik.
+
+Sekali lagi aku ucapkan terima kasih banyak buat kalian yang udah mau bersabar dan mendukung aku selama menjadi kormades kalian. Aku akan selalu mengingat kalian semua dan berharap kita bisa bertemu lagi di lain waktu.
+
+Terima kasih untuk sebulan yang penuh cerita ini. Untuk tawa saat setelah melakukan program kerja, untuk begadang mendengar curhatan curhatan kalian, untuk piket masak yang tidak sesuai dengan lidah kita tetapi tetap dihabiskan, dan untuk setiap keringat di bawah terik matahari demi satu tujuan yang sama.
+
+Desa ini sudah mengajarkan kita banyak hal yang tidak akan pernah kita dapat di ruang kelas: tentang kesederhanaan, tentang gotong royong, dan tentang bagaimana rumah bisa tumbuh di tempat yang bahkan tidak kita kenal sebulan lalu.
+
+Kepada anak-anak yang selalu menyambut kita setelah selesai melakukan program kerja, kepada Bu minah dan warga yang menerima kita seperti keluarga sendiri, dan kepada kalian, rekan seperjuangan — terima kasih sudah menjadi rumah kedua selama ini.
+
+Mungkin masih banyak yang ingin aku ceritakan, tapi air mata ketika aku menulis ini mengatakan kepadaku bahwa aku harus berhenti menulis. Aku tidak ingin mengucapkan selamat tinggal, karena aku yakin kita akan bertemu lagi. Aku hanya ingin mengucapkan sampai jumpa, dan semoga kita bisa bertemu lagi di lain waktu.
+
+Perpisahan ini bukan akhir, hanya jeda. Semoga jalan kita akan bertemu lagi, entah kapan, entah di mana. Sampai saat itu tiba, mari kita simpan semua kenangan ini baik-baik.
+
+Mohon maaf atas segala kesalahan, dan terima kasih atas segala cerita dan kenangan.</div>
+        <div class="signature">Nabil, Kormades KKN Buara 🌾</div>
+      </div>
+      <button class="next-btn" id="nextBtn">
+        Lanjut ke Kenangan
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===================== PAGE 2 ===================== -->
+  <div class="page" id="page2">
+    <div class="gallery-page">
+      <div class="gallery-header">
+        <div class="gallery-eyebrow">35 hari, satu kenangan</div>
+        <div class="gallery-title">Album Kenangan KKN</div>
+        <div class="gallery-sub">Kumpulan momen yang tidak akan pernah kita lupa.</div>
+      </div>
+      <!-- Foto dirender per halaman (2-3 foto) oleh JS dari array `photos` di bawah.
+           Foto tiap halaman BARU didownload saat halaman itu pertama kali dibuka. -->
+      <div class="gallery-pager">
+        <button id="galPrev" class="gal-nav" aria-label="Halaman sebelumnya">‹</button>
+        <div class="gallery-viewport">
+          <div class="gallery-track" id="galleryTrack"></div>
+        </div>
+        <button id="galNext" class="gal-nav" aria-label="Halaman berikutnya">›</button>
+      </div>
+      <div class="gallery-count" id="galleryCount"></div>
+      <div class="closing-note">"Sampai jumpa, sampai rindu ini terobati oleh cerita yang akan kita bawa selamanya." 💛</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   DAFTAR FOTO — SUNTING DI SINI
+   Tambahkan / ganti foto dengan mengisi array di bawah.
+============================================================= */
+const photos = [
+  { src: "pelepasan.jpeg" },
+  { src: "tim dan posko.jpeg" },
+  { src: "1.jpg" },
+  { src: "2.jpg" },
+  { src: "3.jpg" },
+  { src: "4.jpg" },
+  { src: "5.jpg" },
+  { src: "6.jpg" },
+  { src: "7.jpg" },
+  { src: "8.jpg" },
+  { src: "9.jpg" },
+  { src: "10.jpg" },
+  { src: "POC.jpeg" },
+  { src: "12.jpg" },
+  { src: "13.jpg" },
+  { src: "14.jpg" },
+  { src: "15.jpg" },
+  { src: "16.jpg" },
+  { src: "17.jpeg" },
+  { src: "18.jpeg" },
+  { src: "19.jpg" },
+  { src: "20.jpeg" },
+  { src: "21.jpeg" },
+  { src: "ngopi.jpeg" },
+  { src: "otak otak.jpeg" },
+  { src: "22.jpeg" },
+  { src: "23.jpeg" },
+  { src: "24.jpeg" },
+  { src: "25.jpg" },
+  { src: "26.jpg" },
+  { src: "27.jpg" },
+  { src: "28.jpg" },
+  { src: "foto perpisahan.jpeg" }
+];
+
+/* Bangun galeri sebagai beberapa HALAMAN (3 foto per halaman) alih-alih satu
+   grid panjang. Foto tiap halaman baru diunduh saat halaman itu pertama kali
+   ditampilkan — bukan semuanya sekaligus. */
+const PHOTOS_PER_PAGE = 3; // ubah ke 2 kalau mau lebih lega
+
+function buildPhotoCard(p){
+  const card = document.createElement('div');
+  card.className = 'polaroid';
+  const box = document.createElement('div');
+  box.className = 'photo-box';
+  const img = document.createElement('img');
+  img.dataset.src = p.src;
+  img.alt = p.caption || '';
+  img.loading = 'lazy';
+  img.decoding = 'async';
+  img.addEventListener('error', ()=>{
+    box.innerHTML = `<span style="font-family:Poppins,sans-serif;font-size:.7rem;color:#8a7550;padding:8px;text-align:center;">foto belum ditemukan:<br>${p.src}</span>`;
+  });
+  box.appendChild(img);
+  card.appendChild(box);
+  return card;
+}
+
+const galleryTrack = document.getElementById('galleryTrack');
+const galleryCount = document.getElementById('galleryCount');
+const galPrev = document.getElementById('galPrev');
+const galNext = document.getElementById('galNext');
+
+const totalPages = Math.ceil(photos.length / PHOTOS_PER_PAGE);
+const pageFrag = document.createDocumentFragment();
+for(let pg=0; pg<totalPages; pg++){
+  const block = document.createElement('div');
+  block.className = 'gallery-page-block';
+  const grid = document.createElement('div');
+  grid.className = 'gallery-grid';
+  photos.slice(pg*PHOTOS_PER_PAGE, pg*PHOTOS_PER_PAGE+PHOTOS_PER_PAGE).forEach(p=>{
+    grid.appendChild(buildPhotoCard(p));
+  });
+  block.appendChild(grid);
+  pageFrag.appendChild(block);
+}
+galleryTrack.appendChild(pageFrag);
+const pageBlocks = galleryTrack.querySelectorAll('.gallery-page-block');
+
+let currentPage = 0;
+const loadedPages = new Set();
+
+function loadPageImages(pg){
+  if(loadedPages.has(pg)) return;
+  loadedPages.add(pg);
+  pageBlocks[pg].querySelectorAll('img[data-src]').forEach(img=>{
+    img.src = img.dataset.src;
+    img.removeAttribute('data-src');
+  });
+}
+
+function goToPage(pg){
+  currentPage = Math.max(0, Math.min(totalPages-1, pg));
+  galleryTrack.style.transform = `translateX(-${currentPage*100}%)`;
+  galleryCount.textContent = `${currentPage+1} / ${totalPages}`;
+  galPrev.disabled = currentPage === 0;
+  galNext.disabled = currentPage === totalPages-1;
+  loadPageImages(currentPage); // halaman yang sedang dilihat, prioritas utama
+  schedulePreload(currentPage); // halaman tetangga disiapkan belakangan, tanpa mengganggu yang utama
+}
+
+function schedulePreload(pg){
+  const neighbors = [pg-1, pg+1].filter(i => i>=0 && i<totalPages && !loadedPages.has(i));
+  if(!neighbors.length) return;
+  const run = () => neighbors.forEach(loadPageImages);
+  // requestIdleCallback: baru jalan saat browser benar-benar sedang luang,
+  // jadi tidak berebut bandwidth/CPU dengan foto halaman aktif
+  if('requestIdleCallback' in window) requestIdleCallback(run, {timeout:1500});
+  else setTimeout(run, 500);
+}
+
+galPrev.addEventListener('click', ()=>goToPage(currentPage-1));
+galNext.addEventListener('click', ()=>goToPage(currentPage+1));
+
+function initGallery(){
+  goToPage(0); // memuat foto halaman pertama saja
+}
+
+/* ============ BINTANG: sekarang murni CSS (lihat .sky::after), tidak ada lagi JS/DOM di sini ============ */
+
+/* ============ BUNGA/BINTANG JATUH: dibuat SEKALI saja, sisanya 100% CSS ============
+   Tidak ada requestAnimationFrame atau setInterval yang jalan terus-menerus —
+   browser (GPU/compositor) yang menjalankan animasinya, JS hanya membuat
+   elemen satu kali lalu selesai. Jauh lebih ringan untuk CPU/baterai. */
+const stage = document.getElementById('stage');
+const petalEmojis = ['💮','✨','⭐','🌟'];
+const FALLING_COUNT = 14; // jumlah elemen tetap, dipakai berulang oleh CSS infinite
+
+const petalFrag = document.createDocumentFragment();
+for(let i=0;i<FALLING_COUNT;i++){
+  const el = document.createElement('div');
+  el.className = 'falling';
+  el.textContent = petalEmojis[Math.floor(Math.random()*petalEmojis.length)];
+  el.style.setProperty('--x', Math.random()*100+'vw');
+  el.style.setProperty('--size', (Math.random()*16+18)+'px');
+  el.style.setProperty('--op', (Math.random()*.3+.65).toFixed(2));
+  el.style.setProperty('--sway', (Math.random()*140-70)+'px');
+  el.style.setProperty('--spin', (Math.random()*300+180)+'deg');
+  el.style.setProperty('--dur', (Math.random()*7+9).toFixed(1)+'s');
+  el.style.setProperty('--delay', (-Math.random()*14).toFixed(1)+'s'); // delay negatif = langsung tersebar, tidak menumpuk di atas
+  petalFrag.appendChild(el);
+}
+stage.appendChild(petalFrag);
+
+/* ============ AUDIO: "The Night We Met" — Lord Huron (file lokal) ============ */
+const bgm = document.getElementById('bgm');
+const soundBtn = document.getElementById('soundBtn');
+const iconPlay = document.getElementById('iconPlay');
+const iconPause = document.getElementById('iconPause');
+
+const MUSIC_VOLUME = 0.32; // volume normal, sengaja dibuat pelan — cuma pengiring baca surat
+bgm.volume = 0;
+
+function fadeVolumeTo(target, duration){
+  const start = bgm.volume;
+  const startTime = performance.now();
+  function step(now){
+    const t = Math.min((now-startTime)/duration, 1);
+    bgm.volume = start + (target-start)*t;
+    if(t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function playMusic(){
+  bgm.play().then(()=>{
+    fadeVolumeTo(MUSIC_VOLUME, 1800); // masuk pelan-pelan, tidak langsung keras
+    iconPlay.style.display='none';
+    iconPause.style.display='block';
+  }).catch(()=>{});
+}
+function pauseMusic(){
+  bgm.pause();
+  iconPlay.style.display='block';
+  iconPause.style.display='none';
+}
+soundBtn.addEventListener('click', ()=>{
+  if(bgm.paused){ playMusic(); } else { pauseMusic(); }
+});
+
+/* Coba putar otomatis begitu halaman dibuka. Kalau browser memblokir
+   (kebijakan autoplay bersuara), musik otomatis mulai pada sentuhan/klik/​
+   ketukan tombol PERTAMA di mana pun di halaman — jadi tetap terasa
+   "langsung jalan" tanpa pengguna harus mencari tombol musik dulu. */
+function attemptAutoplay(){
+  bgm.play().then(()=>{
+    fadeVolumeTo(MUSIC_VOLUME, 1800);
+    iconPlay.style.display='none';
+    iconPause.style.display='block';
+  }).catch(()=>{
+    const startOnFirstInteraction = ()=>{
+      playMusic();
+      document.removeEventListener('click', startOnFirstInteraction);
+      document.removeEventListener('touchstart', startOnFirstInteraction);
+      document.removeEventListener('keydown', startOnFirstInteraction);
+    };
+    document.addEventListener('click', startOnFirstInteraction, {once:true});
+    document.addEventListener('touchstart', startOnFirstInteraction, {once:true});
+    document.addEventListener('keydown', startOnFirstInteraction, {once:true});
+  });
+}
+attemptAutoplay();
+
+/* ============ FIREWORKS (canvas, rAF hanya jalan saat ada partikel) ============ */
+const canvas = document.getElementById('fireworks');
+const ctx = canvas.getContext('2d');
+function resizeCanvas(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+let resizeTimer;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(resizeCanvas, 150);
+});
+
+let particles = [];
+let fwActive = false;
+const fireworkColors = ['#f4b878','#e2924f','#d9a95a','#7c9b6f','#f6ecd9','#ffd9a0'];
+
+function launchFirework(x, y){
+  const count = 32; // dikurangi dari 46
+  const color = fireworkColors[Math.floor(Math.random()*fireworkColors.length)];
+  for(let i=0;i<count;i++){
+    const angle = (Math.PI*2/count)*i + Math.random()*0.2;
+    const speed = Math.random()*4+2.5;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle)*speed,
+      vy: Math.sin(angle)*speed,
+      life: 1,
+      decay: Math.random()*0.014+0.014,
+      color,
+      size: Math.random()*2.4+1.4
+    });
+  }
+  ensureFwLoop();
+}
+
+function fireworksShow(){
+  const w = canvas.width, h = canvas.height;
+  const bursts = [
+    [w*0.28, h*0.3],
+    [w*0.5, h*0.24],
+    [w*0.72, h*0.32]
+  ]; // 3 titik saja, cukup untuk kesan meriah tanpa membebani
+  bursts.forEach((pos, i)=>{
+    setTimeout(()=>launchFirework(pos[0], pos[1]), i*260);
+  });
+}
+
+function animate(){
+  if(particles.length === 0){
+    fwActive = false;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    return; // hentikan loop total sampai kembang api berikutnya dipicu
+  }
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  particles.forEach(p=>{
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.045;
+    p.life -= p.decay;
+  });
+  particles = particles.filter(p=>p.life>0);
+  particles.forEach(p=>{
+    ctx.globalAlpha = Math.max(p.life,0);
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.size,0,Math.PI*2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(animate);
+}
+function ensureFwLoop(){
+  if(!fwActive){
+    fwActive = true;
+    requestAnimationFrame(animate);
+  }
+}
+
+/* Catatan: bunga/bintang jatuh sekarang animasi CSS murni, jadi browser
+   otomatis menghemat sumber daya saat tab disembunyikan — tidak perlu
+   JS tambahan untuk itu lagi. */
+
+/* ============ PAGE TRANSITION ============ */
+const page1 = document.getElementById('page1');
+const page2 = document.getElementById('page2');
+const letterWrap = document.getElementById('letterWrap');
+const nextBtn = document.getElementById('nextBtn');
+
+nextBtn.addEventListener('click', ()=>{
+  nextBtn.disabled = true;
+  letterWrap.classList.add('fold');
+  page1.classList.add('leaving');
+
+  if(bgm.paused){ playMusic(); }
+  initGallery(); // baru sekarang halaman foto pertama mulai diunduh
+
+  setTimeout(fireworksShow, 350);
+
+  setTimeout(()=>{
+    page1.style.display='none';
+    page2.classList.add('entering');
+  }, 750);
+});
+</script>
+</body>
+</html>
