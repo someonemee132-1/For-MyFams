@@ -105,6 +105,82 @@
     content-visibility:visible;
   }
 
+  /* ================= PAGE 1 : ENVELOPE (tampil sebelum surat) ================= */
+  .envelope-stage{
+    display:flex; flex-direction:column; align-items:center; gap:20px;
+    cursor:pointer; user-select:none;
+    z-index:6;
+    transition:opacity .5s ease, transform .5s ease;
+  }
+  .envelope-stage.opened{
+    opacity:0; transform:scale(.85) translateY(-14px);
+    pointer-events:none;
+  }
+  .envelope{
+    position:relative;
+    width:min(260px, 68vw);
+    aspect-ratio:3/2;
+    perspective:800px;
+  }
+  .envelope-back{
+    position:absolute; inset:0;
+    background:linear-gradient(160deg, var(--paper-dark), var(--paper));
+    border-radius:6px;
+    box-shadow:0 22px 44px -16px rgba(0,0,0,.6);
+    overflow:hidden;
+  }
+  .envelope-back::before{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      linear-gradient(135deg, transparent 49.3%, rgba(0,0,0,.09) 50%, transparent 50.7%),
+      linear-gradient(45deg, transparent 49.3%, rgba(0,0,0,.09) 50%, transparent 50.7%);
+  }
+  .envelope-letter-peek{
+    position:absolute; left:9%; right:9%; top:16%;
+    height:58%;
+    background:var(--paper);
+    border-radius:3px 3px 0 0;
+    box-shadow:0 -4px 14px rgba(0,0,0,.15);
+    transform:translateY(0);
+    opacity:0;
+    transition:transform .7s cubic-bezier(.2,.8,.3,1), opacity .5s ease;
+    z-index:2;
+  }
+  .envelope-flap{
+    position:absolute; top:0; left:0; width:100%; height:52%;
+    background:linear-gradient(160deg, var(--paper), var(--paper-dark));
+    clip-path:polygon(0 0, 100% 0, 50% 100%);
+    transform-origin:top center;
+    transition:transform .7s cubic-bezier(.5,0,.3,1);
+    box-shadow:0 2px 6px rgba(0,0,0,.15);
+    z-index:3;
+  }
+  .envelope-seal{
+    position:absolute; left:50%; top:52%; transform:translate(-50%,-50%);
+    width:36px;height:36px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--amber-glow), var(--amber) 70%);
+    box-shadow:0 6px 14px -4px rgba(0,0,0,.5);
+    display:flex;align-items:center;justify-content:center;
+    color:#2b1c0d; font-family:'Playfair Display',serif; font-style:italic; font-weight:700; font-size:1rem;
+    transition:opacity .25s ease;
+    z-index:4;
+  }
+  .envelope.opening .envelope-flap{ transform:rotateX(180deg); }
+  .envelope.opening .envelope-letter-peek{ transform:translateY(-40%); opacity:1; }
+  .envelope.opening .envelope-seal{ opacity:0; }
+
+  .envelope-hint{
+    display:flex; align-items:center; gap:8px;
+    font-family:'Poppins',sans-serif; font-size:.78rem;
+    color:rgba(246,236,217,.65); letter-spacing:.02em;
+  }
+  .envelope-hint svg{ width:14px;height:14px; animation:tapPulse 1.8s ease-in-out infinite; }
+  @keyframes tapPulse{
+    0%,100%{ transform:scale(1); opacity:.6; }
+    50%{ transform:scale(1.18); opacity:1; }
+  }
+
   /* ================= PAGE 1 : LETTER ================= */
   .letter-wrap{
     position:relative;
@@ -112,11 +188,20 @@
     max-height:88vh;
     display:flex;flex-direction:column;
     z-index:5;
+    opacity:0;
+    transform:translateY(26px) scale(.95);
+    pointer-events:none;
     transition:transform 1s cubic-bezier(.7,0,.3,1), opacity .8s ease;
+  }
+  .letter-wrap.revealed{
+    opacity:1;
+    transform:translateY(0) scale(1);
+    pointer-events:auto;
   }
   .letter-wrap.fold{
     transform: translateY(-30vh) scale(.15) rotate(-8deg);
     opacity:0;
+    pointer-events:none;
   }
   .eyebrow{
     text-align:center;
@@ -413,7 +498,19 @@
 
   <!-- ===================== PAGE 1 ===================== -->
   <div class="page" id="page1">
-    <div class="letter-wrap" id="letterWrap">
+    <div class="envelope-stage" id="envelopeStage" tabindex="0" role="button" aria-label="Buka amplop untuk membaca surat">
+      <div class="envelope" id="envelope">
+        <div class="envelope-back"></div>
+        <div class="envelope-letter-peek"></div>
+        <div class="envelope-flap"></div>
+        <div class="envelope-seal">B</div>
+      </div>
+      <div class="envelope-hint">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        Ketuk amplop untuk membuka surat
+      </div>
+    </div>
+    <div class="letter-wrap" id="letterWrap" style="display:none">
       <div class="eyebrow">Sepucuk surat kecil</div>
       <div class="envelope-title">Untuk Keluarga KKN Tercinta</div>
       <div class="paper">
@@ -497,39 +594,31 @@ Mohon maaf atas segala kesalahan, dan terima kasih atas segala cerita dan kenang
    Tambahkan / ganti foto dengan mengisi array di bawah.
 ============================================================= */
 const photos = [
-  { src: "Pelepasan.jpeg" },
-  { src: "Tim dan Posko.jpeg" },
-  { src: "1.jpg" },
-  { src: "2.jpg" },
-  { src: "3.jpg" },
-  { src: "4.jpg" },
-  { src: "5.jpg" },
-  { src: "6.jpg" },
-  { src: "7.jpg" },
-  { src: "8.jpg" },
-  { src: "9.jpg" },
-  { src: "10.jpg" },
-  { src: "POC.jpeg" },
-  { src: "Bersama Bu minah.jpeg" },
-  { src: "13.jpg" },
-  { src: "14.jpg" },
-  { src: "15.jpg" },
-  { src: "16.jpg" },
-  { src: "17.jpeg" },
-  { src: "18.jpeg" },
-  { src: "19.jpg" },
-  { src: "Bersama Anak SD.jpeg" },
-  { src: "21.jpeg" },
-  { src: "ngopi.jpeg" },
-  { src: "otak otak.jpeg" },
-  { src: "22.jpeg" },
-  { src: "23.jpeg" },
-  { src: "24.jpeg" },
-  { src: "25.jpg" },
-  { src: "26.jpg" },
-  { src: "27.jpg" },
-  { src: "28.jpg" },
-  { src: "Foto Perpisahan.jpeg" }
+  { src: "pelepasan.jpeg", caption: "" },
+  { src: "tim dan posko.jpeg", caption: "Mengajar di sekolah desa" },
+  { src: "1.jpg", caption: "Kerja bakti bersama warga" },
+  { src: "2.jpg", caption: "Malam kumpul depan posko" },
+  { src: "3.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "4.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "5.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "6.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "7.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "8.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "9.jpg", caption: "Kerja bakti bersama warga" },
+  { src: "10.jpg", caption: "Malam kumpul depan posko" },
+  { src: "11.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "12.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "13.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "14.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "15.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "16.jpg", caption: "Perpisahan dengan anak-anak" },
+  { src: "17.jpeg", caption: "Kerja bakti bersama warga" },
+  { src: "18.jpeg", caption: "Malam kumpul depan posko" },
+  { src: "19.jpeg", caption: "Perpisahan dengan anak-anak" },
+  { src: "20.jpeg", caption: "Perpisahan dengan anak-anak" },
+  { src: "21.jpeg", caption: "Perpisahan dengan anak-anak" },
+  { src: "22.jpeg", caption: "Perpisahan dengan anak-anak" },
+  { src: "foto perpisahan.jpeg", caption: "Foto bersama seluruh tim" }
 ];
 
 /* Bangun galeri sebagai beberapa HALAMAN (3 foto per halaman) alih-alih satu
@@ -784,15 +873,40 @@ function ensureFwLoop(){
    otomatis menghemat sumber daya saat tab disembunyikan — tidak perlu
    JS tambahan untuk itu lagi. */
 
+/* ============ AMPLOP: dibuka lebih dulu sebelum surat muncul ============ */
+const envelopeStage = document.getElementById('envelopeStage');
+const envelope = document.getElementById('envelope');
+let envelopeOpened = false;
+
+function openEnvelope(){
+  if(envelopeOpened) return;
+  envelopeOpened = true;
+  envelope.classList.add('opening');
+  setTimeout(() => envelopeStage.classList.add('opened'), 450);
+  setTimeout(() => {
+    envelopeStage.style.display = 'none';
+    letterWrapEl.style.display = 'flex';
+    requestAnimationFrame(() => letterWrapEl.classList.add('revealed'));
+  }, 900);
+}
+
+envelopeStage.addEventListener('click', openEnvelope);
+envelopeStage.addEventListener('keydown', (e) => {
+  if(e.key === 'Enter' || e.key === ' '){
+    e.preventDefault();
+    openEnvelope();
+  }
+});
+
 /* ============ PAGE TRANSITION ============ */
 const page1 = document.getElementById('page1');
 const page2 = document.getElementById('page2');
-const letterWrap = document.getElementById('letterWrap');
+const letterWrapEl = document.getElementById('letterWrap');
 const nextBtn = document.getElementById('nextBtn');
 
 nextBtn.addEventListener('click', ()=>{
   nextBtn.disabled = true;
-  letterWrap.classList.add('fold');
+  letterWrapEl.classList.add('fold');
   page1.classList.add('leaving');
 
   if(bgm.paused){ playMusic(); }
